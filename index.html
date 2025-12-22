@@ -22,6 +22,14 @@
         .bg-blue { background: #3498db; }
         .bg-orange { background: #f39c12; }
         
+        /* Botão Bula Google */
+        .btn-google {
+            display: inline-block; background-color: #f1c40f; color: #333; 
+            padding: 4px 8px; border-radius: 4px; text-decoration: none; 
+            font-weight: bold; font-size: 11px; margin-top: 5px; border: 1px solid #e1b700;
+        }
+        .btn-google:hover { background-color: #f39c12; color: white; }
+
         .scroll-list { max-height: 100px; overflow-y: auto; background: #f9f9f9; padding: 5px; border: 1px solid #eee; }
         .item-row { border-bottom: 1px dashed #e0e0e0; padding: 2px 0; }
     </style>
@@ -51,19 +59,27 @@
 </div>
 
 <script>
-    let db = []; // Garante que começa como lista vazia
+    // ======================================================================
+    // 👇👇👇 IMPORTANTE: COLE O LINK DO SEU GITHUB RAW ABAIXO 👇👇👇
+    // Exemplo: 'https://raw.githubusercontent.com/SEU-USUARIO/dados-agrofit/main/dados.json'
+    const URL_DO_ARQUIVO = 'COLE_AQUI_O_SEU_LINK_RAW_DO_GITHUB';
+    // ======================================================================
+
+    let db = []; 
 
     // Carrega JSON com verificação de segurança
-    fetch('banco_dados_agrofit.json')
-        .then(res => res.json())
+    fetch(URL_DO_ARQUIVO)
+        .then(res => {
+            if (!res.ok) throw new Error("Erro de conexão com o GitHub");
+            return res.json();
+        })
         .then(data => {
-            // CORREÇÃO: Verifica se veio como lista direta ou objeto com chave 'dados'
             if (Array.isArray(data)) {
                 db = data;
             } else if (data.dados && Array.isArray(data.dados)) {
                 db = data.dados;
             } else {
-                console.error("Formato do JSON desconhecido", data);
+                console.error("Formato desconhecido", data);
                 document.getElementById('stats').innerText = "Erro: Formato de dados inválido.";
                 return;
             }
@@ -73,14 +89,13 @@
         })
         .catch(err => {
             console.error(err);
-            document.getElementById('stats').innerText = "Erro ao carregar 'banco_dados_agrofit.json'.";
+            document.getElementById('stats').innerHTML = `<span style="color:red">ERRO: Não consegui ler o arquivo JSON.<br>Verifique se você colou o link RAW correto no código.</span>`;
         });
 
     // Busca
     document.getElementById('busca').addEventListener('keyup', (e) => {
         const termo = e.target.value.toLowerCase();
         
-        // Verifica se db é realmente uma lista antes de filtrar
         if (!Array.isArray(db)) return;
 
         const filtrados = db.filter(p => {
@@ -106,6 +121,11 @@
             let amb = p.ambiental ? `<span class="badge bg-blue" title="Ambiental">🌍 ${p.ambiental}</span>` : '';
             let acao = p.modo_acao ? `<span class="badge bg-orange">${p.modo_acao}</span>` : '';
 
+            // Botão de Bula (Recriado)
+            let termoBusca = `Bula PDF ${p.marca} ${p.titular}`;
+            let linkGoogle = `https://www.google.com/search?q=${encodeURIComponent(termoBusca)}`;
+            let btnBula = `<a href="${linkGoogle}" target="_blank" class="btn-google">🔍 Buscar Bula</a>`;
+
             let culturas = p.culturas.map(c => `<span class="badge" style="background:#ddd; color:#333;">${c}</span>`).join(" ");
             let pragas = p.pragas.map(pr => `<div class="item-row">🕷️ ${pr}</div>`).join("");
 
@@ -114,7 +134,8 @@
                     <td>
                         <div class="marca">${p.marca}</div>
                         <small>Reg: ${p.registro}</small><br>
-                        <small style="color:#2980b9;">${p.titular}</small>
+                        <small style="color:#2980b9;">${p.titular}</small><br>
+                        ${btnBula}
                     </td>
                     <td>
                         <strong>${p.ingrediente}</strong><br>
