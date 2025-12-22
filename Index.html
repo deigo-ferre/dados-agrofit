@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agrofit 2.0 - Final</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #eef2f6; padding: 20px; color: #333; }
+        .container { max-width: 1250px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h1 { color: #16a085; text-align: center; }
+        .search-box { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; margin-bottom: 20px; }
+        .search-box:focus { border-color: #16a085; outline: none; }
+        
+        /* Tabela */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+        th { background: #27ae60; color: white; padding: 10px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: top; word-wrap: break-word; }
+        
+        .marca { color: #2c3e50; font-size: 1.1em; font-weight: bold; }
+        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; margin: 1px; }
+        .bg-red { background: #e74c3c; } 
+        .bg-blue { background: #3498db; }
+        .bg-orange { background: #f39c12; }
+        
+        .scroll-list { max-height: 100px; overflow-y: auto; background: #f9f9f9; padding: 5px; border: 1px solid #eee; }
+        .item-row { border-bottom: 1px dashed #e0e0e0; padding: 2px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🌱 Agrofit 2.0 <small>Final</small></h1>
+    <div id="stats" style="text-align:center; color:#666; margin-bottom:15px;">Carregando sistema...</div>
+
+    <input type="text" id="busca" class="search-box" placeholder="🔎 Digite para buscar (Ex: glifosato, soja, lagarta)...">
+
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th width="20%">Produto</th>
+                    <th width="20%">Detalhes</th>
+                    <th width="15%">Info</th>
+                    <th width="20%">Culturas</th>
+                    <th width="25%">Pragas</th>
+                </tr>
+            </thead>
+            <tbody id="resultado"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let db = []; // Garante que começa como lista vazia
+
+    // Carrega JSON com verificação de segurança
+    fetch('banco_dados_agrofit.json')
+        .then(res => res.json())
+        .then(data => {
+            // CORREÇÃO: Verifica se veio como lista direta ou objeto com chave 'dados'
+            if (Array.isArray(data)) {
+                db = data;
+            } else if (data.dados && Array.isArray(data.dados)) {
+                db = data.dados;
+            } else {
+                console.error("Formato do JSON desconhecido", data);
+                document.getElementById('stats').innerText = "Erro: Formato de dados inválido.";
+                return;
+            }
+            
+            document.getElementById('stats').innerText = `${db.length} produtos carregados.`;
+            renderizar(db.slice(0, 50));
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('stats').innerText = "Erro ao carregar 'banco_dados_agrofit.json'.";
+        });
+
+    // Busca
+    document.getElementById('busca').addEventListener('keyup', (e) => {
+        const termo = e.target.value.toLowerCase();
+        
+        // Verifica se db é realmente uma lista antes de filtrar
+        if (!Array.isArray(db)) return;
+
+        const filtrados = db.filter(p => {
+            if (p.texto_busca && p.texto_busca.includes(termo)) return true;
+            return false;
+        });
+
+        document.getElementById('stats').innerText = `Encontrados: ${filtrados.length}`;
+        renderizar(filtrados.slice(0, 100));
+    });
+
+    function renderizar(lista) {
+        const tbody = document.getElementById('resultado');
+        tbody.innerHTML = '';
+
+        if (!lista || lista.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Nenhum produto encontrado.</td></tr>';
+            return;
+        }
+
+        lista.forEach(p => {
+            let tox = p.toxicol ? `<span class="badge bg-red" title="Toxicológica">☠️ ${p.toxicol}</span>` : '';
+            let amb = p.ambiental ? `<span class="badge bg-blue" title="Ambiental">🌍 ${p.ambiental}</span>` : '';
+            let acao = p.modo_acao ? `<span class="badge bg-orange">${p.modo_acao}</span>` : '';
+
+            let culturas = p.culturas.map(c => `<span class="badge" style="background:#ddd; color:#333;">${c}</span>`).join(" ");
+            let pragas = p.pragas.map(pr => `<div class="item-row">🕷️ ${pr}</div>`).join("");
+
+            const tr = `
+                <tr>
+                    <td>
+                        <div class="marca">${p.marca}</div>
+                        <small>Reg: ${p.registro}</small><br>
+                        <small style="color:#2980b9;">${p.titular}</small>
+                    </td>
+                    <td>
+                        <strong>${p.ingrediente}</strong><br>
+                        <small>${p.formulacao}</small><br>
+                        ${acao}
+                    </td>
+                    <td>${p.classe}<br>${tox} ${amb}</td>
+                    <td><div class="scroll-list">${culturas}</div></td>
+                    <td><div class="scroll-list">${pragas}</div></td>
+                </tr>
+            `;
+            tbody.innerHTML += tr;
+        });
+    }
+</script>
+
+</body>
+</html>
