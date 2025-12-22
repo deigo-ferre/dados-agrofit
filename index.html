@@ -3,152 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agrofit 2.0 - Final</title>
+    <title>Agrofit 2.0 - Premium</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #eef2f6; padding: 20px; color: #333; }
-        .container { max-width: 1250px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        h1 { color: #16a085; text-align: center; }
-        .search-box { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; margin-bottom: 20px; }
-        .search-box:focus { border-color: #16a085; outline: none; }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
         
-        /* Tabela */
-        table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-        th { background: #27ae60; color: white; padding: 10px; text-align: left; }
-        td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: top; word-wrap: break-word; }
+        /* Cabeçalho */
+        .header-agro { background: linear-gradient(to right, #0f5132, #198754); color: white; padding: 40px 0; margin-bottom: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        .marca { color: #2c3e50; font-size: 1.1em; font-weight: bold; }
-        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; margin: 1px; }
-        .bg-red { background: #e74c3c; } 
-        .bg-blue { background: #3498db; }
-        .bg-orange { background: #f39c12; }
-        
-        /* Botão Bula Google */
-        .btn-google {
-            display: inline-block; background-color: #f1c40f; color: #333; 
-            padding: 4px 8px; border-radius: 4px; text-decoration: none; 
-            font-weight: bold; font-size: 11px; margin-top: 5px; border: 1px solid #e1b700;
-        }
-        .btn-google:hover { background-color: #f39c12; color: white; }
+        /* Busca */
+        .search-wrapper { position: relative; max-width: 600px; margin: 0 auto; }
+        .form-control-lg { border-radius: 30px; padding-left: 50px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .search-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #198754; font-size: 1.2rem; }
 
-        .scroll-list { max-height: 100px; overflow-y: auto; background: #f9f9f9; padding: 5px; border: 1px solid #eee; }
-        .item-row { border-bottom: 1px dashed #e0e0e0; padding: 2px 0; }
+        /* Cartões */
+        .card-agro { 
+            border: none; border-radius: 12px; background: white; 
+            transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%;
+        }
+        .card-agro:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .card-header-agro { 
+            padding: 15px; border-bottom: 1px solid #f0f0f0; 
+            font-weight: bold; color: #2c3e50; 
+            display: flex; justify-content: space-between; align-items: center; 
+        }
+
+        /* Cores Toxicologia */
+        .dot-tox { height: 12px; width: 12px; border-radius: 50%; display: inline-block; }
+        .tox-vermelho { background-color: #dc3545; box-shadow: 0 0 5px #dc3545; }
+        .tox-amarelo { background-color: #ffc107; box-shadow: 0 0 5px #ffc107; }
+        .tox-azul { background-color: #0d6efd; box-shadow: 0 0 5px #0d6efd; }
+        .tox-verde { background-color: #198754; box-shadow: 0 0 5px #198754; }
+
+        /* Modal */
+        .modal-header { background-color: #198754; color: white; }
+        .section-title { color: #198754; font-size: 0.9rem; font-weight: bold; margin-top: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 5px; margin-bottom: 10px;}
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>🌱 Agrofit 2.0 <small>Final</small></h1>
-    <div id="stats" style="text-align:center; color:#666; margin-bottom:15px;">Carregando sistema...</div>
-
-    <input type="text" id="busca" class="search-box" placeholder="🔎 Digite para buscar (Ex: glifosato, soja, lagarta)...">
-
-    <div style="overflow-x: auto;">
-        <table>
-            <thead>
-                <tr>
-                    <th width="20%">Produto</th>
-                    <th width="20%">Detalhes</th>
-                    <th width="15%">Info</th>
-                    <th width="20%">Culturas</th>
-                    <th width="25%">Pragas</th>
-                </tr>
-            </thead>
-            <tbody id="resultado"></tbody>
-        </table>
+<div class="header-agro text-center">
+    <div class="container">
+        <h1 class="mb-3"><i class="fas fa-leaf"></i> Consulta Agrofit</h1>
+        <div class="search-wrapper">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="busca" class="form-control form-control-lg" placeholder="Busque por produto, praga, cultura...">
+        </div>
+        <p class="mt-2 small opacity-75" id="stats">Carregando base de dados...</p>
     </div>
 </div>
 
+<div class="container pb-5">
+    <div id="resultado" class="row g-4"></div>
+</div>
+
+<div class="modal fade" id="modalDetalhes" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mTitulo">Produto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="section-title"><i class="fas fa-flask"></i> Ingrediente Ativo</div>
+                        <p id="mIngrediente" class="text-muted"></p>
+                        
+                        <div class="section-title"><i class="fas fa-industry"></i> Empresa</div>
+                        <p id="mEmpresa" class="text-muted fw-bold"></p>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="card bg-light border-0 p-3">
+                            <small class="d-block text-muted">Classe:</small>
+                            <strong id="mClasse" class="d-block mb-2 text-dark"></strong>
+                            
+                            <small class="d-block text-muted">Toxicologia:</small>
+                            <span id="mTox" class="badge bg-secondary mb-2 text-wrap"></span>
+
+                            <small class="d-block text-muted">Ambiental:</small>
+                            <span id="mAmb" class="badge bg-info text-dark text-wrap"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <div class="section-title"><i class="fas fa-seedling"></i> Culturas</div>
+                        <div id="mCulturas"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="section-title"><i class="fas fa-bug"></i> Pragas</div>
+                        <ul id="mPragas" class="list-group list-group-flush small"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <a href="#" id="btnGoogle" target="_blank" class="btn btn-warning fw-bold shadow-sm">
+                    <i class="fab fa-google"></i> Pesquisar Bula PDF
+                </a>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     // ======================================================================
-    // 👇👇👇 IMPORTANTE: COLE O LINK DO SEU GITHUB RAW ABAIXO 👇👇👇
-    // Exemplo: 'https://raw.githubusercontent.com/SEU-USUARIO/dados-agrofit/main/dados.json'
-    const URL_DO_ARQUIVO = 'https://raw.githubusercontent.com/deigo-ferre/dados-agrofit/refs/heads/main/banco_dados_agrofit.txt';
+    // 👇👇👇 COLE O SEU LINK RAW DO GITHUB AQUI DENTRO DAS ASPAS 👇👇👇
+    const URL_DADOS = 'COLE_AQUI_SEU_LINK_RAW_DO_GITHUB_QUE_TERMINA_EM_JSON';
     // ======================================================================
 
-    let db = []; 
+    let db = [];
+    const modal = new bootstrap.Modal(document.getElementById('modalDetalhes'));
 
-    // Carrega JSON com verificação de segurança
-    fetch(URL_DO_ARQUIVO)
+    // Carregar Dados do GitHub
+    fetch(URL_DADOS)
         .then(res => {
-            if (!res.ok) throw new Error("Erro de conexão com o GitHub");
+            if (!res.ok) throw new Error("Erro ao baixar dados do GitHub.");
             return res.json();
         })
         .then(data => {
-            if (Array.isArray(data)) {
-                db = data;
-            } else if (data.dados && Array.isArray(data.dados)) {
-                db = data.dados;
-            } else {
-                console.error("Formato desconhecido", data);
-                document.getElementById('stats').innerText = "Erro: Formato de dados inválido.";
-                return;
-            }
-            
+            db = Array.isArray(data) ? data : (data.dados || []);
             document.getElementById('stats').innerText = `${db.length} produtos carregados.`;
-            renderizar(db.slice(0, 50));
+            renderizar(db.slice(0, 24));
         })
-        .catch(err => {
-            console.error(err);
-            document.getElementById('stats').innerHTML = `<span style="color:red">ERRO: Não consegui ler o arquivo JSON.<br>Verifique se você colou o link RAW correto no código.</span>`;
+        .catch(e => {
+            console.error(e);
+            document.getElementById('stats').innerHTML = `<span style="color:#ffcccc">Erro: Verifique se o Link do GitHub está correto no código.</span>`;
         });
 
-    // Busca
+    // Função de Busca
     document.getElementById('busca').addEventListener('keyup', (e) => {
         const termo = e.target.value.toLowerCase();
+        if(termo.length < 2 && termo.length > 0) return;
         
-        if (!Array.isArray(db)) return;
-
-        const filtrados = db.filter(p => {
-            if (p.texto_busca && p.texto_busca.includes(termo)) return true;
-            return false;
-        });
-
-        document.getElementById('stats').innerText = `Encontrados: ${filtrados.length}`;
-        renderizar(filtrados.slice(0, 100));
+        const filtrados = db.filter(p => p.texto_busca && p.texto_busca.includes(termo));
+        document.getElementById('stats').innerText = `${filtrados.length} encontrados.`;
+        renderizar(filtrados.slice(0, 50));
     });
 
+    // Desenhar os Cartões na tela
     function renderizar(lista) {
-        const tbody = document.getElementById('resultado');
-        tbody.innerHTML = '';
-
-        if (!lista || lista.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Nenhum produto encontrado.</td></tr>';
+        const div = document.getElementById('resultado');
+        div.innerHTML = '';
+        
+        if(!lista.length) {
+            div.innerHTML = '<div class="text-center text-muted mt-5"><h4>Nenhum produto encontrado.</h4></div>';
             return;
         }
 
         lista.forEach(p => {
-            let tox = p.toxicol ? `<span class="badge bg-red" title="Toxicológica">☠️ ${p.toxicol}</span>` : '';
-            let amb = p.ambiental ? `<span class="badge bg-blue" title="Ambiental">🌍 ${p.ambiental}</span>` : '';
-            let acao = p.modo_acao ? `<span class="badge bg-orange">${p.modo_acao}</span>` : '';
+            let dotClass = 'bg-secondary';
+            if(p.toxicol) {
+                if(p.toxicol.includes('I -')) dotClass = 'tox-vermelho';
+                else if(p.toxicol.includes('II -')) dotClass = 'tox-amarelo';
+                else if(p.toxicol.includes('III -')) dotClass = 'tox-azul';
+                else if(p.toxicol.includes('IV -')) dotClass = 'tox-verde';
+            }
 
-            // Botão de Bula (Recriado)
-            let termoBusca = `Bula PDF ${p.marca} ${p.titular}`;
-            let linkGoogle = `https://www.google.com/search?q=${encodeURIComponent(termoBusca)}`;
-            let btnBula = `<a href="${linkGoogle}" target="_blank" class="btn-google">🔍 Buscar Bula</a>`;
-
-            let culturas = p.culturas.map(c => `<span class="badge" style="background:#ddd; color:#333;">${c}</span>`).join(" ");
-            let pragas = p.pragas.map(pr => `<div class="item-row">🕷️ ${pr}</div>`).join("");
-
-            const tr = `
-                <tr>
-                    <td>
-                        <div class="marca">${p.marca}</div>
-                        <small>Reg: ${p.registro}</small><br>
-                        <small style="color:#2980b9;">${p.titular}</small><br>
-                        ${btnBula}
-                    </td>
-                    <td>
-                        <strong>${p.ingrediente}</strong><br>
-                        <small>${p.formulacao}</small><br>
-                        ${acao}
-                    </td>
-                    <td>${p.classe}<br>${tox} ${amb}</td>
-                    <td><div class="scroll-list">${culturas}</div></td>
-                    <td><div class="scroll-list">${pragas}</div></td>
-                </tr>
+            const col = document.createElement('div');
+            col.className = 'col-md-6 col-lg-4 col-xl-3';
+            col.innerHTML = `
+                <div class="card-agro h-100" onclick='abrirDetalhes("${p.registro}")'>
+                    <div class="card-header-agro">
+                        <span>${p.marca.substring(0,25)}</span>
+                        <span class="dot-tox ${dotClass}" title="${p.toxicol}"></span>
+                    </div>
+                    <div class="card-body">
+                        <p class="small text-muted mb-1"><i class="fas fa-flask"></i> ${p.ingrediente.substring(0,30)}...</p>
+                        <p class="small text-muted mb-3"><i class="fas fa-tag"></i> ${p.classe}</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <span class="badge bg-light text-dark border">${p.culturas.length} Culturas</span>
+                            <small class="text-success fw-bold" style="font-size:0.8rem">Ver <i class="fas fa-arrow-right"></i></small>
+                        </div>
+                    </div>
+                </div>
             `;
-            tbody.innerHTML += tr;
+            div.appendChild(col);
         });
+    }
+
+    // Abrir a Janela de Detalhes
+    window.abrirDetalhes = function(reg) {
+        const p = db.find(x => x.registro === reg);
+        if(!p) return;
+
+        document.getElementById('mTitulo').innerText = `${p.marca} (Reg: ${p.registro})`;
+        document.getElementById('mIngrediente').innerText = p.ingrediente;
+        document.getElementById('mEmpresa').innerText = p.titular;
+        document.getElementById('mClasse').innerText = p.classe;
+        document.getElementById('mTox').innerText = p.toxicol || 'N/D';
+        document.getElementById('mAmb').innerText = p.ambiental || 'N/D';
+
+        // Botão do Google
+        const termo = `Bula PDF ${p.marca} ${p.titular}`;
+        document.getElementById('btnGoogle').href = `https://www.google.com/search?q=${encodeURIComponent(termo)}`;
+
+        // Listas
+        const divCult = document.getElementById('mCulturas');
+        divCult.innerHTML = p.culturas.map(c => `<span class="badge bg-success me-1 mb-1">${c}</span>`).join('');
+
+        const ulPragas = document.getElementById('mPragas');
+        ulPragas.innerHTML = p.pragas.map(pr => `<li class="list-group-item px-0 py-1"><i class="fas fa-bug text-muted me-2"></i>${pr}</li>`).join('');
+
+        modal.show();
     }
 </script>
 
