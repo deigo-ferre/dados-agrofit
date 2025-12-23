@@ -46,12 +46,24 @@
 
 <div class="header-agro text-center">
     <div class="container">
-        <h1 class="mb-3"><i class="fas fa-leaf"></i> Consulta Agrofit</h1>
-        <div class="search-wrapper">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="busca" class="form-control form-control-lg" placeholder="Busque por produto, praga, cultura...">
+        <h1 class="mb-4"><i class="fas fa-leaf"></i> Consulta Agrofit</h1>
+        
+        <div class="search-wrapper row g-2">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-seedling text-success"></i></span>
+                    <input type="text" id="buscaCultura" class="form-control form-control-lg border-start-0" placeholder="Qual a Cultura? (ex: Soja)">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-bug text-danger"></i></span>
+                    <input type="text" id="buscaPraga" class="form-control form-control-lg border-start-0" placeholder="Qual a Praga? (ex: Ferrugem)">
+                </div>
+            </div>
         </div>
-        <p class="mt-2 small opacity-75" id="stats">Carregando base de dados...</p>
+        
+        <p class="mt-3 small opacity-75" id="stats">Carregando base de dados...</p>
     </div>
 </div>
 
@@ -137,39 +149,53 @@
         });
 
     // Função de Busca
-  // --- CÓDIGO DE BUSCA INTELIGENTE (PRODUTOS + PRAGAS) ---
-    document.getElementById('busca').addEventListener('keyup', (e) => {
-        const termo = e.target.value.toLowerCase();
-        
-        // Se digitou menos de 2 letras, não faz nada
-        if(termo.length < 2 && termo.length > 0) return;
-        
-        // Se apagar tudo, mostra os primeiros produtos de novo
-        if(termo.length === 0) {
+ // --- LÓGICA DE BUSCA DUPLA (CULTURA + PRAGA) ---
+    
+    // Seleciona os dois campos
+    const inputCultura = document.getElementById('buscaCultura');
+    const inputPraga = document.getElementById('buscaPraga');
+
+    // Função que faz a mágica acontecer
+    function filtrarDados() {
+        const termoCultura = inputCultura.value.toLowerCase();
+        const termoPraga = inputPraga.value.toLowerCase();
+
+        // Se ambos estiverem vazios, reseta (mostra os primeiros)
+        if (termoCultura === '' && termoPraga === '') {
             renderizar(db.slice(0, 24));
             document.getElementById('stats').innerText = `${db.length} produtos carregados.`;
             return;
         }
-        
+
         if (!Array.isArray(db)) return;
 
         const filtrados = db.filter(p => {
-            // 1. Verifica se o termo está no "textão" (Nome, Marca, Ingrediente)
-            const achouNoTexto = p.texto_busca && p.texto_busca.includes(termo);
+            // 1. Checa a CULTURA (Se o usuário digitou algo)
+            let bateuCultura = true;
+            if (termoCultura.length > 0) {
+                // Verifica se a cultura digitada está na lista de culturas do produto
+                bateuCultura = p.culturas && p.culturas.some(c => c.toLowerCase().includes(termoCultura));
+            }
 
-            // 2. Verifica se o termo está na Lista de Pragas
-            // (O comando .some() percorre a lista de pragas item por item)
-            const achouNaPraga = p.pragas && p.pragas.some(praga => 
-                praga.toLowerCase().includes(termo)
-            );
+            // 2. Checa a PRAGA (Se o usuário digitou algo)
+            let bateuPraga = true;
+            if (termoPraga.length > 0) {
+                // Verifica se a praga digitada está na lista de pragas do produto
+                bateuPraga = p.pragas && p.pragas.some(pr => pr.toLowerCase().includes(termoPraga));
+            }
 
-            // Retorna VERDADEIRO se achou em qualquer um dos dois
-            return achouNoTexto || achouNaPraga;
+            // O produto só passa se atender AS DUAS condições (E)
+            return bateuCultura && bateuPraga;
         });
 
-        // Atualiza a tela com o resultado
-        document.getElementById('stats').innerText = `${filtrados.length} encontrados para "${termo}".`;
+        // Atualiza a tela
+        document.getElementById('stats').innerText = `${filtrados.length} produtos encontrados.`;
         renderizar(filtrados.slice(0, 50));
+    }
+
+    // Adiciona o "ouvinte" nos dois campos. Quando digitar em qualquer um, ele filtra.
+    inputCultura.addEventListener('keyup', filtrarDados);
+    inputPraga.addEventListener('keyup', filtrarDados);
     });
     // Desenhar os Cartões na tela
     function renderizar(lista) {
