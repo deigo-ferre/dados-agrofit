@@ -137,15 +137,40 @@
         });
 
     // Função de Busca
+  // --- CÓDIGO DE BUSCA INTELIGENTE (PRODUTOS + PRAGAS) ---
     document.getElementById('busca').addEventListener('keyup', (e) => {
         const termo = e.target.value.toLowerCase();
+        
+        // Se digitou menos de 2 letras, não faz nada
         if(termo.length < 2 && termo.length > 0) return;
         
-        const filtrados = db.filter(p => p.texto_busca && p.texto_busca.includes(termo));
-        document.getElementById('stats').innerText = `${filtrados.length} encontrados.`;
+        // Se apagar tudo, mostra os primeiros produtos de novo
+        if(termo.length === 0) {
+            renderizar(db.slice(0, 24));
+            document.getElementById('stats').innerText = `${db.length} produtos carregados.`;
+            return;
+        }
+        
+        if (!Array.isArray(db)) return;
+
+        const filtrados = db.filter(p => {
+            // 1. Verifica se o termo está no "textão" (Nome, Marca, Ingrediente)
+            const achouNoTexto = p.texto_busca && p.texto_busca.includes(termo);
+
+            // 2. Verifica se o termo está na Lista de Pragas
+            // (O comando .some() percorre a lista de pragas item por item)
+            const achouNaPraga = p.pragas && p.pragas.some(praga => 
+                praga.toLowerCase().includes(termo)
+            );
+
+            // Retorna VERDADEIRO se achou em qualquer um dos dois
+            return achouNoTexto || achouNaPraga;
+        });
+
+        // Atualiza a tela com o resultado
+        document.getElementById('stats').innerText = `${filtrados.length} encontrados para "${termo}".`;
         renderizar(filtrados.slice(0, 50));
     });
-
     // Desenhar os Cartões na tela
     function renderizar(lista) {
         const div = document.getElementById('resultado');
