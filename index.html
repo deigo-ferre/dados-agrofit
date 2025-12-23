@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agrofit 2.0 - Premium</title>
+    <title>Agrofit 2.0 - Painel Completo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
@@ -14,9 +14,10 @@
         .header-agro { background: linear-gradient(to right, #0f5132, #198754); color: white; padding: 40px 0; margin-bottom: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
         /* Busca */
-        .search-wrapper { position: relative; max-width: 600px; margin: 0 auto; }
-        .form-control-lg { border-radius: 30px; padding-left: 50px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .search-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #198754; font-size: 1.2rem; }
+        .search-wrapper { position: relative; max-width: 900px; margin: 0 auto; }
+        .form-control-lg { border-radius: 30px; font-size: 0.95rem; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .input-group-text { border-radius: 30px 0 0 30px; border: none; padding-left: 20px;}
+        .form-control-lg { border-radius: 0 30px 30px 0; }
 
         /* Cartões */
         .card-agro { 
@@ -48,17 +49,25 @@
     <div class="container">
         <h1 class="mb-4"><i class="fas fa-leaf"></i> Consulta Agrofit</h1>
         
-        <div class="search-wrapper row g-2">
-            <div class="col-md-6">
+        <div class="search-wrapper row g-3">
+            <div class="col-md-4">
                 <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-seedling text-success"></i></span>
-                    <input type="text" id="buscaCultura" class="form-control form-control-lg border-start-0" placeholder="Qual a Cultura? (ex: Soja)">
+                    <span class="input-group-text bg-white"><i class="fas fa-flask text-primary"></i></span>
+                    <input type="text" id="buscaProduto" class="form-control form-control-lg" placeholder="Produto (ex: Glifosato)">
                 </div>
             </div>
-            <div class="col-md-6">
+            
+            <div class="col-md-4">
                 <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-bug text-danger"></i></span>
-                    <input type="text" id="buscaPraga" class="form-control form-control-lg border-start-0" placeholder="Qual a Praga? (ex: Ferrugem)">
+                    <span class="input-group-text bg-white"><i class="fas fa-seedling text-success"></i></span>
+                    <input type="text" id="buscaCultura" class="form-control form-control-lg" placeholder="Cultura (ex: Soja)">
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="fas fa-bug text-danger"></i></span>
+                    <input type="text" id="buscaPraga" class="form-control form-control-lg" placeholder="Praga (ex: Lagarta)">
                 </div>
             </div>
         </div>
@@ -125,14 +134,14 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     // ======================================================================
-    // 👇👇👇 COLE O SEU LINK RAW DO GITHUB AQUI DENTRO DAS ASPAS 👇👇👇
+    // 👇 SEU LINK RAW DO GITHUB 👇
     const URL_DADOS = 'https://raw.githubusercontent.com/deigo-ferre/dados-agrofit/refs/heads/main/banco_dados_agrofit.txt';
     // ======================================================================
 
     let db = [];
     const modal = new bootstrap.Modal(document.getElementById('modalDetalhes'));
 
-    // Carregar Dados do GitHub
+    // 1. Carregar Dados do GitHub
     fetch(URL_DADOS)
         .then(res => {
             if (!res.ok) throw new Error("Erro ao baixar dados do GitHub.");
@@ -148,20 +157,19 @@
             document.getElementById('stats').innerHTML = `<span style="color:#ffcccc">Erro: Verifique se o Link do GitHub está correto no código.</span>`;
         });
 
-    // Função de Busca
- // --- LÓGICA DE BUSCA DUPLA (CULTURA + PRAGA) ---
-    
-    // Seleciona os dois campos
-    const inputCultura = document.getElementById('buscaCultura');
-    const inputPraga = document.getElementById('buscaPraga');
+    // 2. Configuração dos 3 Campos de Busca
+    const inProd = document.getElementById('buscaProduto');
+    const inCult = document.getElementById('buscaCultura');
+    const inPraga = document.getElementById('buscaPraga');
 
-    // Função que faz a mágica acontecer
+    // Função que cruza as 3 informações
     function filtrarDados() {
-        const termoCultura = inputCultura.value.toLowerCase();
-        const termoPraga = inputPraga.value.toLowerCase();
+        const tProd = inProd.value.toLowerCase();
+        const tCult = inCult.value.toLowerCase();
+        const tPraga = inPraga.value.toLowerCase();
 
-        // Se ambos estiverem vazios, reseta (mostra os primeiros)
-        if (termoCultura === '' && termoPraga === '') {
+        // Se tudo estiver vazio, mostra os iniciais
+        if (tProd === '' && tCult === '' && tPraga === '') {
             renderizar(db.slice(0, 24));
             document.getElementById('stats').innerText = `${db.length} produtos carregados.`;
             return;
@@ -170,40 +178,47 @@
         if (!Array.isArray(db)) return;
 
         const filtrados = db.filter(p => {
-            // 1. Checa a CULTURA (Se o usuário digitou algo)
-            let bateuCultura = true;
-            if (termoCultura.length > 0) {
-                // Verifica se a cultura digitada está na lista de culturas do produto
-                bateuCultura = p.culturas && p.culturas.some(c => c.toLowerCase().includes(termoCultura));
+            // A lógica é: Começamos assumindo que o produto serve (true).
+            // Se o usuário digitou algo num campo e o produto NÃO tem aquilo, vira false.
+            
+            // 1. Checa PRODUTO
+            if (tProd.length > 0) {
+                // Se não tiver o termo no texto de busca, falhou
+                if (!(p.texto_busca && p.texto_busca.includes(tProd))) return false;
             }
 
-            // 2. Checa a PRAGA (Se o usuário digitou algo)
-            let bateuPraga = true;
-            if (termoPraga.length > 0) {
-                // Verifica se a praga digitada está na lista de pragas do produto
-                bateuPraga = p.pragas && p.pragas.some(pr => pr.toLowerCase().includes(termoPraga));
+            // 2. Checa CULTURA
+            if (tCult.length > 0) {
+                // Se não tiver a cultura na lista, falhou
+                if (!(p.culturas && p.culturas.some(c => c.toLowerCase().includes(tCult)))) return false;
             }
 
-            // O produto só passa se atender AS DUAS condições (E)
-            return bateuCultura && bateuPraga;
+            // 3. Checa PRAGA
+            if (tPraga.length > 0) {
+                // Se não tiver a praga na lista, falhou
+                if (!(p.pragas && p.pragas.some(pr => pr.toLowerCase().includes(tPraga)))) return false;
+            }
+
+            // Se passou por todas as barreiras, retorna true
+            return true;
         });
 
-        // Atualiza a tela
         document.getElementById('stats').innerText = `${filtrados.length} produtos encontrados.`;
         renderizar(filtrados.slice(0, 50));
     }
 
-    // Adiciona o "ouvinte" nos dois campos. Quando digitar em qualquer um, ele filtra.
-    inputCultura.addEventListener('keyup', filtrarDados);
-    inputPraga.addEventListener('keyup', filtrarDados);
-    });
-    // Desenhar os Cartões na tela
+    // Adiciona o "ouvinte" nos 3 campos
+    inProd.addEventListener('keyup', filtrarDados);
+    inCult.addEventListener('keyup', filtrarDados);
+    inPraga.addEventListener('keyup', filtrarDados);
+
+    // 3. Função de Desenhar na Tela (Cards)
     function renderizar(lista) {
         const div = document.getElementById('resultado');
         div.innerHTML = '';
         
         if(!lista.length) {
-            div.innerHTML = '<div class="text-center text-muted mt-5"><h4>Nenhum produto encontrado.</h4></div>';
+            div.innerHTML = '<div class="text-center text-muted mt-5"><h4>Nenhum produto encontrado com esses filtros.</h4></div>';
             return;
         }
 
@@ -221,11 +236,11 @@
             col.innerHTML = `
                 <div class="card-agro h-100" onclick='abrirDetalhes("${p.registro}")'>
                     <div class="card-header-agro">
-                        <span>${p.marca.substring(0,25)}</span>
+                        <span>${p.marca.substring(0,22)}</span>
                         <span class="dot-tox ${dotClass}" title="${p.toxicol}"></span>
                     </div>
                     <div class="card-body">
-                        <p class="small text-muted mb-1"><i class="fas fa-flask"></i> ${p.ingrediente.substring(0,30)}...</p>
+                        <p class="small text-muted mb-1"><i class="fas fa-flask"></i> ${p.ingrediente.substring(0,28)}...</p>
                         <p class="small text-muted mb-3"><i class="fas fa-tag"></i> ${p.classe}</p>
                         
                         <div class="d-flex justify-content-between align-items-center mt-4">
@@ -239,7 +254,7 @@
         });
     }
 
-    // Abrir a Janela de Detalhes
+    // 4. Função Abrir Modal
     window.abrirDetalhes = function(reg) {
         const p = db.find(x => x.registro === reg);
         if(!p) return;
@@ -251,16 +266,11 @@
         document.getElementById('mTox').innerText = p.toxicol || 'N/D';
         document.getElementById('mAmb').innerText = p.ambiental || 'N/D';
 
-        // Botão do Google
         const termo = `Bula PDF ${p.marca} ${p.titular}`;
         document.getElementById('btnGoogle').href = `https://www.google.com/search?q=${encodeURIComponent(termo)}`;
 
-        // Listas
-        const divCult = document.getElementById('mCulturas');
-        divCult.innerHTML = p.culturas.map(c => `<span class="badge bg-success me-1 mb-1">${c}</span>`).join('');
-
-        const ulPragas = document.getElementById('mPragas');
-        ulPragas.innerHTML = p.pragas.map(pr => `<li class="list-group-item px-0 py-1"><i class="fas fa-bug text-muted me-2"></i>${pr}</li>`).join('');
+        document.getElementById('mCulturas').innerHTML = p.culturas.map(c => `<span class="badge bg-success me-1 mb-1">${c}</span>`).join('');
+        document.getElementById('mPragas').innerHTML = p.pragas.map(pr => `<li class="list-group-item px-0 py-1"><i class="fas fa-bug text-muted me-2"></i>${pr}</li>`).join('');
 
         modal.show();
     }
